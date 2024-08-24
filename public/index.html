@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Form Filler</title>
+</head>
+<body>
+    <h1>PDF Form Filler</h1>
+
+    <!-- Button to Load PDF -->
+    <button id="load-pdf-btn">Load PDF</button>
+    
+    <!-- PDF Viewer -->
+    <iframe id="pdf-viewer" src="http://localhost:3000/pdf/load" type="application/pdf" width="600" height="400" style="display:none; margin-top: 20px;"></iframe>
+
+    <!-- Button to Save PDF -->
+    <button id="save-pdf-btn" style="display:none; margin-top: 20px;">Save PDF</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script>
+        // Function to save the edited PDF
+        document.getElementById('save-pdf-btn').addEventListener('click', async () => {
+            // Fetch the PDF from the server
+            const response = await fetch('http://localhost:3000/pdf/load');
+            const pdfArrayBuffer = await response.arrayBuffer();
+            
+            // Load the PDF with PDF-lib
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfArrayBuffer);
+
+            // Save the PDF
+            const pdfBytes = await pdfDoc.save();
+
+            // Send the modified PDF back to the server
+            const saveResponse = await fetch('http://localhost:3000/pdf/fill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/octet-stream'
+                },
+                body: pdfBytes
+            });
+
+            const result = await saveResponse.json();
+            console.log(result)
+            alert(result.message);
+        });
+    </script>
+
+    <script>
+        // Load PDF button click event
+        document.getElementById('load-pdf-btn').onclick = () => {
+            const pdfViewer = document.getElementById('pdf-viewer');
+            pdfViewer.src = '/pdf/load/';  // URL to load the PDF
+            pdfViewer.style.display = 'block'; // Show the PDF viewer
+            document.getElementById('save-pdf-btn').style.display = 'block'; // Show the Save button
+        };
+    </script>
+</body>
+</html>
+
